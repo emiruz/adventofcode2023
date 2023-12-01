@@ -11,7 +11,7 @@ steps: (a) decompound words (e.g. turn twone into twoone), and
 (b) turn words into numbers (e.g. one --> 1). The rest is the
 same as above.
 
-Load the correspond Prolog file and run:
+Load the Prolog file corresponding to the part you want and run:
 
 ```
 ?- solve("input.txt",Answer).

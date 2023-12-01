@@ -44,14 +44,15 @@ code(A,B) --> non_digit,digit(A),seq(_),digit(B),non_digit.
 
 % Split a string into lines.
 lines([]) --> [].
-lines([A-B|Ls]) --> comp2simp,word2num,code(A,B),"\n",!,lines(Ls).
-lines([A-B]) --> comp2simp,word2num,code(A,B).
+lines([A-B|Ls]) --> code(A,B),"\n",!,lines(Ls).
+lines([A-B]) --> code(A,B).
 
 solve(File,Answer) :-
     open(File,read,Stream),
     read_string(Stream,_,String),
     string_chars(String,Chars),
+    phrase((comp2simp,word2num),Chars,Norm),
     close(Stream),
-    phrase(lines(Ls),Chars),
+    phrase(lines(Ls),Norm),
     findall(X,(member(A-B,Ls),number_string(X,[A,B])),Xs),
     sumlist(Xs,Answer).

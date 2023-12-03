@@ -53,7 +53,7 @@ solve(File,Answer) :-
     findall(
 	V,
 	(member(X-Y0-Y-V,Groups),
-	 (member(X_-Y_-V_,Coords),
+	 \+ \+ (member(X_-Y_-V_,Coords),
 	  \+ char_type(V_,digit),
 	  Y_ >= Y0-1,Y+1 >= Y_,
 	  X_ >= X-1,X+1 >= X_)),

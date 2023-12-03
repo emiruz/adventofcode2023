@@ -35,17 +35,15 @@ star_group(Coords,X_,Y_,Grp) :-
 
 prod(A,B,X) :- X is A*B.
 
-solve(part1,File,Answer) :-
+solve(File,part1,Answer) :-
     file_to_coords(File,Coords),
-    findall(
-	V,(member(X-Y0-Y-V,Coords),number(V),
-	   \+ \+ (member(X_-Y_-_-V_,Coords),
-		  \+ number(V_),
-		  Y_>=Y0-1,Y+1>=Y_,X_>=X-1,X+1>=X_)),
-	Filtered),
-    sumlist(Filtered,Answer).
+    findall(V,(member(X-Y0-Y-V,Coords),number(V),
+	       \+ \+ (member(X_-Y_-_-V_,Coords),
+		      \+ number(V_),
+		      Y_>=Y0-1,Y+1>=Y_,X_>=X-1,X+1>=X_)),Parts),
+    sumlist(Parts,Answer).
 
-solve(part2,File,Answer) :-
+solve(File,part2,Answer) :-
     file_to_coords(File,Coords),
     findall(Prod,(member(X-Y-_-'*',Coords),
 		  star_group(Coords,X,Y,Grp),

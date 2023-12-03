@@ -10,6 +10,6 @@ are just simple queries thereafter.
 Both parts of the solution are in *solution.prolog*. You can use
 it as follows:
 ```
-?- solve(Part,"input.txt",Answer).
+?- solve("input.txt",Part,Answer).
 ```
 where "input.txt" is the path to your AoC2023 input file.

@@ -21,14 +21,14 @@ lines([]) --> [].
 lines([Id-Ns-Ps|Ls]) --> card(Id,Ns,Ps),"\n",lines(Ls).
 lines([Id-Ns-Ps]) --> card(Id,Ns,Ps).
 
-intersect(As,Bs,Xs) :-
+intersect(As,Bs,N) :-
     findall(X,(member(X,As),member(X,Bs)),Xs),
-    Xs\=[].
+    Xs\=[],length(Xs,N).
 
 :- table copied/3.
 
 copied(Id0-Ns0-Ps0,Cards,Total0) :-
-    intersect(Ns0,Ps0,Xs),length(Xs,Len),
+    intersect(Ns0,Ps0,Len),
     findall(Total,(member(Id-Ns-Ps,Cards),
 		   Id0+Len>=Id,Id>Id0,
 		   copied(Id-Ns-Ps,Cards,Total)),Ts),
@@ -43,8 +43,7 @@ file_to_cards(File,Cards) :-
 
 solve(File,part1,Answer) :-
     file_to_cards(File,Cards),
-    findall(X,(member(_-Ns-Ps,Cards),intersect(Ns,Ps,Xs),
-	       length(Xs,N),X is 2^(N-1)),Points),
+    findall(2^(N-1),(member(_-Ns-Ps,Cards),intersect(Ns,Ps,N)),Points),
     sumlist(Points,Answer).
 solve(File,part2,Answer) :-
     file_to_cards(File,Cards),

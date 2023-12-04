@@ -1,8 +1,6 @@
-:- set_prolog_flag(double_quotes, chars).
-
 % Spaces.
-space([]) --> [' '].
-space([_|Xs]) --> [' '],!,space(Xs).
+space([]) --> " ".
+space([_|Xs]) --> " ",space(Xs).
 
 % Sequence of digits.
 digits([]) --> [].
@@ -21,12 +19,14 @@ lines([]) --> [].
 lines([Id-Ns-Ps|Ls]) --> card(Id,Ns,Ps),"\n",lines(Ls).
 lines([Id-Ns-Ps]) --> card(Id,Ns,Ps).
 
+% Calculate number of common items.
 intersect(As,Bs,N) :-
     findall(X,(member(X,As),member(X,Bs)),Xs),
     Xs\=[],length(Xs,N).
 
 :- table copied/3.
 
+% Calculate cumulative number of cards received.
 copied(Id0-Ns0-Ps0,Cards,Total0) :-
     intersect(Ns0,Ps0,Len),
     findall(Total,(member(Id-Ns-Ps,Cards),
@@ -35,17 +35,12 @@ copied(Id0-Ns0-Ps0,Cards,Total0) :-
     sumlist(Ts,Sum),Total0 is Sum+1,!.
 copied(_,_,1).
 
-file_to_cards(File,Cards) :-
-    open(File,read,Stream),
-    read_string(Stream,_,String),
-    string_chars(String,Chars),
-    phrase(lines(Cards),Chars).
-
+% Solutions to parts 1 & 2.
 solve(File,part1,Answer) :-
-    file_to_cards(File,Cards),
+    phrase_from_file(lines(Cards),File),
     findall(2^(N-1),(member(_-Ns-Ps,Cards),intersect(Ns,Ps,N)),Points),
     sumlist(Points,Answer).
 solve(File,part2,Answer) :-
-    file_to_cards(File,Cards),
+    phrase_from_file(lines(Cards),File),
     findall(N,(member(C,Cards),copied(C,Cards,N)),Points),
     sumlist(Points,Answer).

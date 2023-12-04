@@ -1,52 +1,40 @@
-summary(Grp0,X-Y-Y0-N) :-
-    reverse(Grp0,Grp),
-    Grp=[X-Y-_|_],
-    last(Grp,_-Y0-_),
-    findall(V,member(_-_-V,Grp),Vs),
-    number_string(N,Vs).
+:- use_module(library(chr)).
+:- use_module(library(dcg/basics)).
 
-to_coord([],_,_,[],Acc,Acc) :- !.
-to_coord([],_,_,Cur,Acc,[Grp|Acc]) :- summary(Cur,Grp),!.
-to_coord([H|T],X0,Y0,Cur,Acc0,Coords) :-
-    memberchk(H,['\n','.']),
-    (H='.' ->Y1 is Y0+1;Y1=Y0),
-    (H='\n'->X is X0+1,Y=1;X=X0,Y=Y1),
-    (Cur=[]->Acc=Acc0;summary(Cur,Grp),Acc=[Grp|Acc0]),!,
-    to_coord(T,X,Y,[],Acc,Coords).
-to_coord([H|T],X,Y0,Cur,Acc0,Coords) :-
-    \+ char_type(H,digit),
-    Y is Y0+1,
-    (Cur\=[]->summary(Cur,Grp),Acc=[Grp|Acc0];Acc=Acc0),!,
-    to_coord(T,X,Y,[],[X-Y0-Y0-H|Acc],Coords).
-to_coord([H|T],X,Y0,Cur,Acc,Coords) :-
-    Y is Y0+1,
-    to_coord(T,X,Y,[X-Y0-H|Cur],Acc,Coords).
+:- set_prolog_flag(chr_toplevel_show_store, false).
 
-file_to_coords(File,Coords) :-
-    open(File,read,Stream),
-    read_string(Stream,_,String),
-    string_chars(String,Chars),
-    to_coord(Chars,1,1,[],[],Coords).    
+ns(N,V) :- number_string(N,V).
 
-star_group(Coords,X_,Y_,Grp) :-
-    findall(V,(member(X-Y0-Y-V,Coords),
-	       number(V),
-	       Y_>=Y0-1,Y+1>=Y_,X_>=X-1,X+1>=X_),Grp).
+t(Xs) --> t(1,1,Xs).
+t(_,_,[]) --> [].
+t(X0,_,Xs) --> "\n",{X is X0+1},!,t(X,1,Xs).
+t(X0,Y0,[p(X0,Y0,Y0,[V])|Xs]) --> [V0],{char_code(V,V0)},{Y is Y0+1},!,t(X0,Y,Xs).
 
-prod(A,B,X) :- X is A*B.
+:- chr_constraint p/4.
+:- chr_constraint q/4.
+:- chr_constraint k/3.
+:- chr_constraint stage/1.
 
-solve(File,part1,Answer) :-
-    file_to_coords(File,Coords),
-    findall(V,(member(X-Y0-Y-V,Coords),number(V),
-	       \+ \+ (member(X_-Y_-_-V_,Coords),
-		      \+ number(V_),
-		      Y_>=Y0-1,Y+1>=Y_,X_>=X-1,X+1>=X_)),Parts),
-    sumlist(Parts,Answer).
+p(_,_,_,['.']) <=> true.
 
-solve(File,part2,Answer) :-
-    file_to_coords(File,Coords),
-    findall(Prod,(member(X-Y-_-'*',Coords),
-		  star_group(Coords,X,Y,Grp),
-		  length(Grp,2),
-		  foldl(prod,Grp,1,Prod)),Prods),
-    sumlist(Prods,Answer).
+p(X,Y0,Y,V),p(X,Y01,Y1,V1) <=>
+    Y01-Y=:=1,
+    ns(_,V),ns(_,V1) | append(V,V1,V_),p(X,Y0,Y1,V_).
+
+adj(X1,Y1,X,Y0,Y) :- X1>=X-1,X+1>=X1,Y1>=Y0-1,Y+1>=Y1.
+
+stage(2),p(X1,Y1,Y1,_) \ p(X,Y0,Y,V) <=>
+         ns(_,V),adj(X1,Y1,X,Y0,Y) | ns(N,V),q(X,Y0,Y,N).
+
+stage(3),p(X1,Y1,Y1,['*']) \ q(X,Y0,Y,V) <=>
+	 adj(X1,Y1,X,Y0,Y) | k(X1,Y1,[V]).
+
+stage(3) \ k(X,Y,V),k(X,Y,V1) <=> V\=V1 | append(V,V1,Vs),k(X,Y,Vs).
+
+solve(File,Part1,Part2) :-
+    phrase_from_file(t(Xs),File),
+    maplist(call,Xs),
+    stage(2),
+    aggregate_all(sum(N),find_chr_constraint(q(_,_,_,N)),Part1),
+    stage(3),
+    aggregate_all(sum(N),(find_chr_constraint(k(_,_,[A,B])),N is A*B),Part2).

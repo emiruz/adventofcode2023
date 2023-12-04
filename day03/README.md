@@ -2,14 +2,30 @@
 
 [Question.](https://adventofcode.com/2023/day/3)
 
+## First try (solution_old.prolog)
+
 The strategy is to transform the map into X-Y0-Y-Value objects,
 where X is the row and Y0/Y are the start/end columns. The digit
 characters are merged during the transformation. The solutions
 are just simple queries thereafter.
 
-Both parts of the solution are in *solution.prolog*. You can use
-it as follows:
+Both parts of the solution are in *solution_old.prolog*. You can
+use it as follows:
 ```
 ?- solve("input.txt",Part,Answer).
+```
+where "input.txt" is the path to your AoC2023 input file.
+
+
+## Second try
+
+Uses a DCG to designate coordinates to all characters in the
+map. Then uses staged CHR to simpagation rules to filter and
+group objects into a solution.
+
+Both parts of the solution are in *solution.prolog*. You can
+use it as follows:
+```
+?- solve("input.txt",Part1,Part2).
 ```
 where "input.txt" is the path to your AoC2023 input file.

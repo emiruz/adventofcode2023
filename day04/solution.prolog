@@ -1,18 +1,11 @@
-% Spaces.
-space([]) --> " ".
-space([_|Xs]) --> " ",space(Xs).
-
-% Sequence of digits.
-digits([]) --> [].
-digits([X|Xs])  --> [X],{char_type(X,digit)},digits(Xs).
+:- use_module(library(dcg/basics)).
 
 % Parse card number entries.
-record([]) --> [].
-record([N|Rs]) --> space(_),digits(Ds),{number_string(N,Ds)},record(Rs).
+rcrd([]) --> [].
+rcrd([N|Rs]) --> blanks,number(N),rcrd(Rs).
 
 % A card record.
-card(Id,Ns,Ps) --> "Card",space(_),digits(Ds),{number_string(Id,Ds)},":",
-		   record(Ns)," |",record(Ps).
+card(Id,Ns,Ps) --> "Card",blanks,number(Id),":",rcrd(Ns)," |",rcrd(Ps).
 
 % Split a string into games.
 lines([]) --> [].

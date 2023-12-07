@@ -1,16 +1,8 @@
 :- use_module(library(dcg/basics)).
-:- use_module(library(clpfd)).
 
 % Convert picture cards to numbers.
-to_num([],Acc,Acc).
-to_num([H|T],Acc,R) :-
-    Pics=[`T`,`J`,`Q`,`K`,`A`],
-    nth1(I,Pics,[H]),V is 9+I,!,
-    to_num(T,[V|Acc],R).
-to_num([H|T],Acc,R) :-
-    char_code(V0,H),atom_number(V0,V),!,to_num(T,[V|Acc],R).
-to_num(V,R) :-
-    to_num(V,[],R0),reverse(R0,R).
+to_num(V,R) :- maplist(to_num_, V, R).
+to_num_(C, V) :- nth1(V, `123456789TJQKA`, C), !.
 
 % Classify hand.
 class_([X,X,X,X,X],6) :- !.
@@ -20,7 +12,7 @@ class_(V,4) :- append([_,[X,X],_,[Y,Y,Y],_],V), X\=Y,!.
 class_(V,3) :- append([_,[X,X,X],_],V),!.
 class_(V,2) :- append([_,[X,X],_,[Y,Y],_],V), X\=Y,!.
 class_(V,1) :- append([_,[X,X],_],V),!.
-class_(V,0) :- all_distinct(V).
+class_(_,0).
 class(V,C)  :- \+ memberchk(0,V), msort(V,V0), class_(V0,C),!.
 class(X,C0) :-
     aggregate_all(max(C),(between(2,14,N),replace(X,0,N,Y),class(Y,C)),C0).

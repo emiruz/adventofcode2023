@@ -18,10 +18,8 @@ class(X,C0) :-
     aggregate_all(max(C),(between(2,14,N),replace(X,0,N,Y),class(Y,C)),C0).
 
 % Replace a value in a list.
-replace(_,_,[]) --> [].
-replace(A,B,[B|Xs]) --> [X],{X=A},!,replace(A,B,Xs).
-replace(A,B,[X|Xs]) --> [X],replace(A,B,Xs).
-replace(Xs,X,Y,Out) :- phrase(replace(X,Y,Out),Xs).
+replace(In,F,T,Out) :- maplist(replace_(F,T), In, Out).
+replace_(F,T, I,O) :- ( F == I -> O = T ; O = I ).
 
 % Parse input.
 line(C-V) --> string_without(" ",C),blank,number(V).

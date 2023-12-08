@@ -2,15 +2,15 @@
 
 [Question.](https://adventofcode.com/2023/day/5)
 
-The first part is a straightforward DCG+CHR implementation.
-CHR is used to collapse the route from seed to location.
 
-For part 2, I wrote some code to test whether a location has a
-corresponding seed. I then just try all the locations in order.
-Since categories and seeds have large ranges, I first use an
-increment of 10000 to find roughly where the solution is and
-then I pass over it again closer to the goal with a unit
-increment for a precise answer.
+I've revised this implementation a few times towards what
+I think now is an optimal solution. As usual, a DCG process
+the text input. I map all seeds and categories to sets
+defined by ranges which the clpfd fdset abstraction makes
+simple. At every step, all IDs can be expressed as a single
+set. All that remains is to recursively map the set through
+the categories to the end, where the infimum of the final
+set is the answer.
 
 Both parts of the solution are in *solution.prolog*. You can
 use it as follows:

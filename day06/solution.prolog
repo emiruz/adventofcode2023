@@ -20,5 +20,4 @@ solve(File,Part1,Part2) :-
     pairs_keys_values(Pairs,Time,Dist),
     foldl([A,B,C]>>(sols(A,N),C is N*B),Pairs,1,Part1),
     concat(Time,T), concat(Dist,D),
-    writeln([T-D]),
     sols(T-D,Part2).

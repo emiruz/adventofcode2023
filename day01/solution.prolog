@@ -11,14 +11,11 @@ lines([L|Ls]) --> line(L),`\n`,!,lines(Ls).
 lines([L]) --> line(L).
 
 ns(X,C) :-
-    Ns=[`twoone`,`eighttwo`,`eightthree`,`oneeight`,`threeeight`,
-	`fiveeight`,`nineeight`,`sevennine`],
-    Cs=[`twone`,`eightwo`,`eighthree`,`oneight`,`threeight`,`fiveight`,
-	`nineight`,`sevenine`],
+    Ns=[`twoone`,`eighttwo`,`eightthree`,`oneeight`,`threeeight`,`fiveeight`,
+	`nineeight`,`sevennine`,`1`,`2`,`3`,`4`,`5`,`6`,`7`,`8`,`9`],
+    Cs=[`twone`,`eightwo`,`eighthree`,`oneight`,`threeight`,`fiveight`,`nineight`,
+	`sevenine`,`one`,`two`,`three`,`four`,`five`,`six`,`seven`,`eight`,`nine`],
     nth1(I,Cs,X), nth1(I,Ns,C).
-ns(X,C) :-
-    Ns=[`one`,`two`,`three`,`four`,`five`,`six`,`seven`,`eight`,`nine`],
-    member(X,Ns), nth1(I,Ns,X), number_codes(I,C).
 
 tr,[] --> call(eos),!.
 tr,N --> {ns(X,N)},X,!,tr.

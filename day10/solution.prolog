@@ -10,7 +10,6 @@ t(X0,Y0,[p(X0-Y0,V)|Xs]) --> [V],{Y is Y0+1},!,t(X0,Y,Xs).
 
 % Decides whether tiles are linked together in different
 % directions.
-
 link(P1,P2) :- above(P1,P2);below(P1,P2);left(P1,P2);right(P1,P2).
 
 m(A,B) :- memberchk(A,B).

@@ -1,69 +1,75 @@
 :- use_module(library(dcg/basics)).
 
+% Simpler DCG to assign an X,Y coordinate to each character.
+% when called with phrase_from_file(t(Xs),File), it results in
+% a list of p(X-Y,V) terms.
 ns(N,V) :- number_string(N,V).
-
 t(_,_,[]) --> [].
 t(X0,_,Xs) --> "\n",{X is X0+1},!,t(X,1,Xs).
-t(X0,Y0,[p(X0,Y0,V)|Xs]) --> [V],{Y is Y0+1},!,t(X0,Y,Xs).
+t(X0,Y0,[p(X0-Y0,V)|Xs]) --> [V],{Y is Y0+1},!,t(X0,Y,Xs).
+
+% Decides whether tiles are linked together in different
+% directions.
+
+link(P1,P2) :- above(P1,P2);below(P1,P2);left(P1,P2);right(P1,P2).
 
 m(A,B) :- memberchk(A,B).
 
-above(q(X0,Y,V0),q(X,Y,V)) :- X0-X=:=1,m(V0,`S|LJ`),m(V,`S|7F`).
-below(q(X0,Y,V0),q(X,Y,V)) :- X-X0=:=1,m(V0,`S|7F`),m(V,`S|LJ`).
-left(q(X,Y0,V0),q(X,Y,V))  :- Y0-Y=:=1,m(V0,`S-J7`),m(V,`S-FL`).
-right(q(X,Y0,V0),q(X,Y,V)) :- Y-Y0=:=1,m(V0,`S-LF`),m(V,`S-7J`).
+above(p(X0-Y,V0),p(X-Y,V)) :- X0-X=:=1,m(V0,`S|LJ`),m(V,`S|7F`).
+below(p(X0-Y,V0),p(X-Y,V)) :- X-X0=:=1,m(V0,`S|7F`),m(V,`S|LJ`).
+left(p(X-Y0,V0),p(X-Y,V))  :- Y0-Y=:=1,m(V0,`S-J7`),m(V,`S-FL`).
+right(p(X-Y0,V0),p(X-Y,V)) :- Y-Y0=:=1,m(V0,`S-LF`),m(V,`S-7J`).
 
-link(P1,P2) :-
-    member(X,[above,below,left,right]), call(X,P1,P2).
 
+% Used to restrict backtracking to just candidate terms which
+% could be linked to X0-Y0,
+possible(p(X0-Y0,_),X-Y) :-
+    X is X0+1,Y=Y0; X is X0-1,Y=Y0; X=X0,Y is Y0+1; X=X0,Y is Y0-1. 
+
+% Follow a chain of terms until a terminal term is reached.
 cycle([H|T],Term,End) :-
-    \+ length(T,1), link(H,Term), reverse([H|T],End),!.
-cycle([H|T],Term,End) :-
-    q(A,B,C), link(H,q(A,B,C)),
-    \+ memberchk(q(A,B,C),[H|T]),!,
-    cycle([q(A,B,C),H|T],Term,End).
+    possible(H,A-B), p(A-B,C), link(H,p(A-B,C)),
+    \+ (T\=[],p(A-B,C)=Term),
+    \+ memberchk(p(A-B,C),T),!,
+    cycle([p(A-B,C),H|T],Term,End).
+cycle(Acc,_,End) :- reverse(Acc,End).
 
-connect(q(X0,Y0,63),q(X,Y,V)) :-
-    memberchk(V,`.?`), once(X0\=X;Y0\=Y),
-    1 >= sqrt((X-X0)^2 + (Y-Y0)^2),
-    \+ (p(A,B,_), (Y0=Y,A<max(X,X0),A>min(X,X0);X0=X,B<max(Y,Y0),B>min(Y,Y0))).
-connect(q(X0,Y0,46),q(X,Y,V)) :-
-    memberchk(V,`.?`),
-    once(X0\=X;Y0\=Y),
-    1 >= sqrt((X-X0)^2 + (Y-Y0)^2).
+% It so happens that you can work out if a point is in an enclosure
+% by counting how many times it crosses a boundary when moving in one
+% direction. This DCG counts horizontal boundary points for a reversed
+% list.
+count_([]) --> [].
+count_([2|Xs]) --> (`JL`;`7F`),!,count_(Xs).
+count_([1|Xs]) --> (`7L`;`JF`),!,count_(Xs).
+count_([1|Xs]) --> (`|`;`L`;`7`;`F`;`J`),!, count_(Xs).
+count_([0|Xs]) --> [_], count_(Xs).
+count(Xs,N) :- reverse(Xs,Xs1), phrase(count_(Ns),Xs1), sumlist(Ns,N).
 
-q(X,Y,V) :- p(X,Y,V).
-q(X,Y,63) :- [C]=`|`, p(X,Y1,C),  (Y is Y1+0.5; Y is Y1-0.5).
-q(X,Y,63) :- [C]=`-`, p(X1,Y,C),  (X is X1+0.5; X is X1-0.5).
-q(X,Y,63) :- [C]=`J`, p(X1,Y1,C), (X=X1, Y is Y1+0.5; X is X1+0.5, Y=Y1; X is X1-0.5, Y is Y1-0.5).
-q(X,Y,63) :- [C]=`7`, p(X1,Y1,C), (X=X1, Y is Y1+0.5; X is X1-0.5, Y=Y1; X is X1+0.5, Y is Y1-0.5).
-q(X,Y,63) :- [C]=`L`, p(X1,Y1,C), (X=X1, Y is Y1-0.5; X is X1+0.5, Y=Y1; X is X1-0.5, Y is Y1+0.5).
-q(X,Y,63) :- [C]=`F`, p(X1,Y1,C), (X=X1, Y is Y1-0.5; X is X1-0.5, Y=Y1; X is X1+0.5, Y is Y1+0.5).
+% Remove hyphens. Used in conjunction with count/2.
+rem([])-->[].
+rem(Xs)-->"-",!,rem(Xs).
+rem([X|Xs])-->[X],rem(Xs).
 
-init_ok(X) :- (X=[];X=[_]),!.
+% Check whether a term is within the boundary. It is the case if the
+% count is not even.
+in_bounds(p(A-B,_),Bounds) :-
+    findall(K,(member(p(A-J,K),Bounds), J<B),Ks0),
+    phrase(rem(Ks),Ks0),
+    count(Ks,N), N mod 2 =\= 0.
+
+% Part of making the boundary checking work is replacing S with
+% its proper functional tile. This predicate checks whether a
+% replacement for S would preserve the boundary cycle.
 init_ok([H,N|T]) :- last(T,L), link(H,N), link(H,L).
 
-fill([M|Ms],Acc0,Fill) :-
-    findall(q(A,B,C),
-	    (q(A,B,C),connect(M,q(A,B,C)),
-	     \+ memberchk(q(A,B,C),Acc0)),Matches),
-    append(Matches,Acc0,AccNew), append(Matches,Ms,MsNew),
-    fill(MsNew,AccNew,Fill).
-fill([],Ms,Ms).
-
 solve(File,Part1,Part2) :-
-    phrase_from_file(t(1,1,Xs),File),
-    retractall(p(_,_,_)),maplist(assertz,Xs),
-    q(X,Y,83),cycle([q(X,Y,83)],q(X,Y,83),Bs0),
-    length(Bs0,N), Part1 is N/2,
-    forall((p(A,B,_), \+ memberchk(q(A,B,_),Bs0)),
-	   (retractall(p(A,B,_)),assertz(p(A,B,46)))),
-    member(Rep,`JFL7|`), Bs0=[_|Rest],
-    init_ok([q(X,Y,Rep)|Rest]),
-    retractall(p(X,Y,83)),
-    assertz(p(X,Y,Rep)),
-    Bs=[q(X,Y,Rep)|Rest],
-    aggregate_all(count,q(_,_,46),PointCount),
-    X1=1,Y1=1,q(X1,Y1,46), fill([q(X1,Y1,46)],[],Fill), % Chosen because not in boundary.
-    aggregate_all(count,member(q(_,_,46),Fill),FillCount),
-    Part2 is PointCount - FillCount.
+    phrase_from_file(t(1,1,Xs),File), % Get the terms.
+    retractall(p(_,_)),maplist(assertz,Xs), % Assert them .
+    p(X-Y,83), cycle([p(X-Y,83)],p(X-Y,83),Bs), % Calculate boundary.
+    length(Bs,N), Part1 is N/2, % Answer to part 1.
+    member(Rep,`JFL7|`), Bs=[_|Rest], init_ok([p(X-Y,Rep)|Rest]), % Replace S.
+    retractall(p(X-Y,_)), assertz(p(X-Y,Rep)), % Assert the S replacement.
+    Bs1=[p(X-Y,Rep)|Rest], sort(Bs1,Bounds), % Sort boundary (needed by count/2)
+    % Count the terms within the boundary.
+    aggregate_all(count, (p(A-B,C), \+ memberchk(p(A-B,C),Bounds),
+			  in_bounds(p(A-B,C),Bounds)), Part2).

@@ -3,7 +3,7 @@
 [Question.](https://adventofcode.com/2023/day/14)
 
 The first part can be solved parsimoniously but
-inefficiently like using DCG+CHR like this:
+inefficiently using DCG+CHR like this:
 ```
 :- use_module(library(dcg/basics)).
 :- use_module(library(chr)).

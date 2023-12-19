@@ -20,17 +20,13 @@ act(Code,[G|Gs], Count) :-   % #s
     act(Rest,Gs,Count).
 act(_,_,0).
 
-expand,[] --> call(eos),!.
-expand,`\n` --> `\n`,!,expand.
-expand,X --> string_without(` `,S),{unfold(5,S,`?`,E1)},
-	  " ",string_without(`\n`,S2),
-	  {unfold(5,S2,`,`,E2), append([E1,` `,E2],X)},expand.
+sw(A,B,C,D) :- string_without(A,B,C,D).
+copy5(S, D, Out) :- append([S,D,S,D,S,D,S,D,S], Out).
 
-unfold(1,S,_,Acc,Res) :- append(Acc,S,Res),!.
-unfold(N0,S,Sep,Acc0,Res) :-
-    append([S,Sep,Acc0],Acc),
-    N is N0-1,!,unfold(N,S,Sep,Acc,Res).
-unfold(N,S,Sep,Res) :- unfold(N,S,Sep,[],Res).
+expand,[] --> call(eos),!.
+expand,`\n` --> `\n`, !, expand.
+expand,X --> sw(` `,S),{ copy5(S,`?`,E1) }, " ", sw(`\n`,S2),
+	     { copy5(S2,`,`,E2), append([E1,` `,E2], X) }, expand.
 
 nums([X|Xs]) --> number(X), ",", nums(Xs).
 nums([X]) --> number(X).

@@ -2,6 +2,10 @@
 
 [Question.](https://adventofcode.com/2023/day/22)
 
+A naive but very straightforward solution. It needs
+to be refactored to something more efficient.
+Consider it a first draft!
+
 Both parts of the solution are in *solution.prolog*.
 You can use them like this:
 ```

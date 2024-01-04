@@ -2,6 +2,10 @@
 
 [Question.](https://adventofcode.com/2023/day/24)
 
+Refactored solution is less "just-so". It relies on
+a linearisation of the original problem using the
+cross product. An smart idea originally sourced from
+[here](https://old.reddit.com/r/adventofcode/comments/18pnycy/2023_day_24_solutions/kepu26z/).
 
 Both parts of the solution are in *solution.prolog*.
 You can use them like this:

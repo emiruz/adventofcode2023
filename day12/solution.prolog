@@ -1,7 +1,13 @@
 :- use_module(library(dcg/basics)).
-
 :- set_prolog_flag(table_space, 2_000_000_000).
+
 :- table act/3.
+
+solve(File, Part1, Part2) :-
+    phrase_from_file(lines(Cs1),File),
+    sumlist(Cs1,Part1),
+    phrase_from_file((expand,lines(Cs2)),File),
+    sumlist(Cs2,Part2).
 
 act([63|Rest], Gs, Count) :- % ?
     act([46|Rest], Gs, Count1),
@@ -35,9 +41,3 @@ line(Count) --> string_without(` `,Code), " ", nums(Groups),
 		"\n", { act(Code, Groups, Count) }.
 lines([Count|Ls]) --> line(Count),lines(Ls).
 lines([Count]) --> line(Count).
-
-solve(File,Part1,Part2) :-
-    phrase_from_file(lines(Cs1),File),
-    sumlist(Cs1,Part1),
-    phrase_from_file((expand,lines(Cs2)),File),
-    sumlist(Cs2,Part2).

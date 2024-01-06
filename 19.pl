@@ -1,8 +1,16 @@
 :- use_module(library(dcg/basics)).
 :- use_module(library(clpfd)).
 
-% Parser
-% --------------------------------------------------------------------
+solve(File, Part1, Part2) :-
+    phrase_from_file((wfs(Wfs), "\n", items(Items)), File),
+    retractall(work(_,_)), maplist(assert, Wfs),
+    work(`in`, Cmds),
+    aggregate_all(sum(T), ( member(Item, Items),
+			    accept(Cmds, Item),
+			    sumlist(Item, T) ), Part1 ),
+    aggregate_all(sum(T), ( combos(Cmds, [], Cons),
+			    eval(Cons, T) ), Part2).
+
 str(X,L) --> string_without(X,L).
 num(N) --> number(N).
 
@@ -24,8 +32,6 @@ item([X,M,A,S]) -->
 items([]) --> [].
 items([I|Is]) --> item(I), "\n", !, items(Is).
 
-% Processor
-% --------------------------------------------------------------------
 accept([action(`A`)|_], _) :- !.
 accept([action(`R`)|_], _) :- !, fail.
 accept([action(Label)|_], Item) :-
@@ -35,8 +41,6 @@ accept([cond([R],Op,N,A)|_], Item) :-
     call(Op, V, N), !, accept([A], Item).
 accept([_|T], Item) :- accept(T, Item).
 
-% Combinations
-% --------------------------------------------------------------------
 combos([action(`A`)|_], Acc, Acc).
 combos([action(Label)|_], Acc, Result) :-
     work(Label, Cmds), combos(Cmds, Acc, Result).
@@ -54,15 +58,3 @@ eval(Cons, Domain) :-
     eval_(Ps, Cons),
     fd_size(X,Nx), fd_size(M,Nm), fd_size(A,Na), fd_size(S,Ns),
     Domain is Nx * Nm * Na * Ns.	     
-
-% Solution
-% --------------------------------------------------------------------
-solve(File, Part1, Part2) :-
-    phrase_from_file((wfs(Wfs), "\n", items(Items)), File),
-    retractall(work(_,_)), maplist(assert, Wfs),
-    work(`in`, Cmds),
-    aggregate_all(sum(T), ( member(Item, Items),
-			    accept(Cmds, Item),
-			    sumlist(Item, T) ), Part1 ),
-    aggregate_all(sum(T), ( combos(Cmds, [], Cons),
-			    eval(Cons, T) ), Part2).

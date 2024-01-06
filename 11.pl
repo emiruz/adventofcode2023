@@ -1,5 +1,10 @@
 :- use_module(library(dcg/basics)).
 
+solve(File, Part1, Part2) :-
+    phrase_from_file(t(1,1,1,Gs),File),
+    expand(Gs,2,Es), sum_paths(Es,Part1),
+    expand(Gs,1000000,Es2), sum_paths(Es2,Part2).
+
 ns(N,V) :- number_string(N,V).
 t(_,_,_,[]) --> [].
 t(X0,_,N,Xs) --> "\n",{X is X0+1},!,t(X,1,N,Xs).
@@ -19,8 +24,3 @@ expand(Gs,F,Es) :-
 sum_paths(Es,Sum) :-
     aggregate_all(sum(Total), (member(p(X-Y,V1),Es), member(p(I-J,V2),Es),
 			       V1<V2, Total is abs(X-I)+abs(Y-J)),Sum).
-
-solve(File,Part1,Part2) :-
-    phrase_from_file(t(1,1,1,Gs),File),
-    expand(Gs,2,Es), sum_paths(Es,Part1),
-    expand(Gs,1000000,Es2), sum_paths(Es2,Part2).

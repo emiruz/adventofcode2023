@@ -1,5 +1,15 @@
 :- use_module(library(dcg/basics)).
 
+solve(File, Part1, Part2) :-
+    phrase_from_file(t(Ls), File),
+    aggregate_all(sum(H), (member(X,Ls), cmd_hash(X,H)), Part1),
+    ht_new(Tbl), update(Tbl, Ls),
+    aggregate_all(
+	sum(Total), (ht_gen(Tbl,K,Vs0),
+		     reverse(Vs0,Vs),
+		     findall(X,(nth1(I,Vs,_-V), X is (K+1)*I*V),Xs),
+		     sumlist(Xs,Total)), Part2).
+
 cmd_hash(in(_,L,F),H) :-
     number_codes(F,Cs), append([L,`=`,Cs],S), hash(S,0,H).
 cmd_hash(out(_,L),H) :-
@@ -28,14 +38,3 @@ update(Tbl, [out(H,L)|T]) :-
     ht_put(Tbl,H,New),!,
     update(Tbl,T).
 update(Tbl,[_|T]) :- update(Tbl,T).
-
-solve(File, Part1, Part2) :-
-    phrase_from_file(t(Ls), File),
-    findall(H, (member(X,Ls), cmd_hash(X,H)), Hs),
-    sumlist(Hs, Part1),
-    ht_new(Tbl), update(Tbl, Ls),
-    findall(Total, (ht_gen(Tbl,K,Vs0),
-		    reverse(Vs0,Vs),
-		    findall(X,(nth1(I,Vs,_-V), X is (K+1)*I*V),Xs),
-		    sumlist(Xs,Total)), Totals),
-    sumlist(Totals, Part2).

@@ -1,7 +1,17 @@
 :- use_module(library(dcg/basics)).
 :- use_module(library(clpfd)).
 
-% Parse input file.
+solve_(File,F,Answer) :- 
+    phrase_from_file(file(F,Ss,Cs0),File),
+    flatten([Ss,Cs0],Cs),
+    retractall(c(_,_,_,_)),maplist(assertz,Cs),
+    findall(S,c(S,_,none,seed),[H|T]),
+    foldl([A,B,C]>>fdset_union(A,B,C),T,H,Seeds),
+    map(`seed`,Seeds,Final),
+    fdset_min(Final,Answer).
+solve(File,Part1,Part2) :-
+    solve_(File,seeds,Part1),
+    solve_(File,seedz,Part2).
 
 seeds([]) --> [].
 seeds([c(S,0,none,seed)|Xs]) -->
@@ -27,9 +37,6 @@ cats([Rs|Xs]) --> cat(Rs),"\n\n",!,cats(Xs).
 cats([Rs]) --> cat(Rs).
 file(F,Seeds,Cats) --> "seeds:",call(F,Seeds),"\n\n",cats(Cats).
 
-
-% Map seed sets to seed location sets.
-
 offset(S0,O,S) :- X in_set S0, Y #= X+O, fd_set(Y,S).
 
 map_(_,[],AccS,AccD,AccS,AccD) :- !.
@@ -50,15 +57,3 @@ map(Fr,Src,End) :-
     findall(S-O,c(S,O,Fr,To),Dests),
     map_(Src,Dests,NewSrc),!,
     map(To,NewSrc,End).
-
-solve_(File,F,Answer) :- 
-    phrase_from_file(file(F,Ss,Cs0),File),
-    flatten([Ss,Cs0],Cs),
-    retractall(c(_,_,_,_)),maplist(assertz,Cs),
-    findall(S,c(S,_,none,seed),[H|T]),
-    foldl([A,B,C]>>fdset_union(A,B,C),T,H,Seeds),
-    map(`seed`,Seeds,Final),
-    fdset_min(Final,Answer).
-solve(File,Part1,Part2) :-
-    solve_(File,seeds,Part1),
-    solve_(File,seedz,Part2).

@@ -1,3 +1,15 @@
+solve(File, Part1, Part2) :-
+    phrase_from_file(grid(1,1, Ps0), File),
+    last(Ps0, p(Mx-My0,_)), My is My0-1,
+    include([p(_,V)]>>(V\=0'#), Ps0, Ps),
+    retractall(p(_,_)), maplist(asserta, Ps),
+    reach(Mx-My, _, Part1),
+    findall(e(X-Y, I-J, 1),
+	    (p(X-Y,_), next(X-Y, I-J), X-Y > I-J), Es),
+    simplify(Es, Simple),
+    retractall(e(_,_,_)), maplist(asserta, Simple),
+    dfs(1-2, Mx-My, Part2).
+
 grid(_,_,[]) --> [].
 grid(X0,_,Xs) --> "\n", { X is X0+1 }, !, grid(X,1,Xs).
 grid(X0,Y0,[p(X0-Y0,V)|Xs]) --> [V],{ Y is Y0+1 }, !, grid(X0,Y,Xs).
@@ -40,15 +52,3 @@ dfs(End, [H|T], N0, N) :-
     (e(H,X,W); e(X,H,W)), \+ memberchk(X, T),
     N1 is N0 + W, dfs(End, [X,H|T], N1, N).
 dfs(Start, End, N) :- dfs(End, [Start], 0, N).
-
-solve(File, Part1, Part2) :-
-    phrase_from_file(grid(1,1, Ps0), File),
-    last(Ps0, p(Mx-My0,_)), My is My0-1,
-    include([p(_,V)]>>(V\=0'#), Ps0, Ps),
-    retractall(p(_,_)), maplist(asserta, Ps),
-    reach(Mx-My, _, Part1),
-    findall(e(X-Y, I-J, 1),
-	    (p(X-Y,_), next(X-Y, I-J), X-Y > I-J), Es),
-    simplify(Es, Simple),
-    retractall(e(_,_,_)), maplist(asserta, Simple),
-    dfs(1-2, Mx-My, Part2).
